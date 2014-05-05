@@ -1,0 +1,64 @@
+﻿@model YQ.Web.Models.EvalFormVM
+
+@{
+    ViewBag.Title = "Filled Questionnaire Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Filled Form Details</h2>
+    @for (int i = 0; i < Model.EvalQuestions.Count; i++)
+{
+    <fieldset data-role="controlgroup">
+        <legend class="eval">
+            <strong>
+                @(Model.EvalQuestions[i].Heading + ((Model.EvalQuestions[i].EvalQuestions.Count == 0 && Model.EvalQuestions[i].QuestionType != YQ.Web.DB.EvalQuestionType.SSMC && Model.EvalQuestions[i].QuestionType != YQ.Web.DB.EvalQuestionType.MSMC) ? Model.EvalQuestions[i].Description : ""))
+            </strong>
+        </legend>
+        @for (int j = 0; j < Model.EvalQuestions[i].EvalQuestions.Count; j++)
+        {
+            <fieldset data-role="controlgroup">
+                <legend><strong>@Convert.ToString((char)((byte)'a' + j))</strong>@(": " + Model.EvalQuestions[i].EvalQuestions[j].Heading)</legend>
+                @if (Model.EvalQuestions[i].EvalQuestions[j].Options.Count > 0)
+                {
+                    for (int oi = 0; oi < Model.EvalQuestions[i].EvalQuestions[j].Options.Count; oi++)
+                    {
+                        @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].Options[oi])
+                        if (Model.EvalQuestions[i].EvalQuestions[j].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC)
+                        {
+                            @Html.RadioButtonFor(m => m.EvalQuestions[i].EvalQuestions[j].Answer, Model.EvalQuestions[i].EvalQuestions[j].Options[oi], new { @id = Model.EvalQuestions[i].EvalQuestions[j].EvalQuestionId.ToString() + oi.ToString() })
+                        }
+                        else
+                        {
+                            @Html.CheckBoxFor(m => m.EvalQuestions[i].EvalQuestions[j].OptionAnswers[oi], new { @id = Model.EvalQuestions[i].EvalQuestions[j].EvalQuestionId.ToString() + oi.ToString() })
+                        }
+                        @Html.Label(Model.EvalQuestions[i].EvalQuestions[j].Options[oi], new { @for = Model.EvalQuestions[i].EvalQuestions[j].EvalQuestionId.ToString() + oi.ToString() })
+                    }
+                }
+                else
+                {
+                    @Html.TextAreaFor(m => m.EvalQuestions[i].EvalQuestions[j].Answer)
+                }
+            </fieldset>
+        }
+        @if (Model.EvalQuestions[i].EvalQuestions.Count == 0 && (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.MSMC || Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC))
+        {
+            for (int oi = 0; oi < Model.EvalQuestions[i].Options.Count; oi++)
+            {
+                @Html.Label(Model.EvalQuestions[i].Options[oi], new { @for = Model.EvalQuestions[i].EvalQuestionId.ToString() + oi.ToString() })
+                @Html.HiddenFor(m => m.EvalQuestions[i].Options[oi])
+                if (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC)
+                {
+                    @Html.RadioButtonFor(m => m.EvalQuestions[i].Answer, Model.EvalQuestions[i].Options[oi], new { @id = Model.EvalQuestions[i].EvalQuestionId.ToString() + oi.ToString() })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.EvalQuestions[i].OptionAnswers[oi], new { @id = Model.EvalQuestions[i].EvalQuestionId.ToString() + oi.ToString() })
+                }
+            }
+        }
+        @if (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.Comment)
+        {
+            @Html.TextAreaFor(m => m.EvalQuestions[i].Answer)
+        }
+    </fieldset>
+}

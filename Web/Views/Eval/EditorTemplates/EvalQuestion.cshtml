@@ -1,0 +1,39 @@
+﻿@model YQ.Web.DB.EvalQuestion
+@{
+    Layout = null;
+}
+
+<fieldset data-role="controlgroup">
+    <legend class="eval">
+        <strong>
+            @(Model.Heading + ((Model.EvalQuestions.Count == 0 && Model.QuestionType != YQ.Web.DB.EvalQuestionType.SSMC && Model.QuestionType != YQ.Web.DB.EvalQuestionType.MSMC) ? Model.Description : ""))
+        </strong>
+    </legend>
+    @foreach (var subquestion in Model.EvalQuestions)
+    {
+        <fieldset data-role="controlgroup">
+            @*<legend><strong>@Convert.ToString((char)((byte)'a' + subquestion.SubOrder - 1))</strong>@(": " + subquestion.Heading)</legend>*@
+            @Html.EditorFor(m => m.EvalQuestions.ToList()[i])
+        </fieldset>
+    }
+    @if (Model.EvalQuestions.Count == 0 && (Model.QuestionType == YQ.Web.DB.EvalQuestionType.MSMC || Model.QuestionType == YQ.Web.DB.EvalQuestionType.SSMC))
+    {
+        for (int oi = 0; oi < Model.Options.Count; oi++)
+        {
+            @Html.Label(Model.Options[oi], new { @for = Model.EvalQuestionId.ToString() + oi.ToString() })
+            @Html.HiddenFor(m => Model.Options[oi])
+            if (Model.QuestionType == YQ.Web.DB.EvalQuestionType.SSMC)
+            {
+                @Html.RadioButtonFor(m => Model.Answer, Model.Options[oi], new { @id = Model.EvalQuestionId.ToString() + oi.ToString() })
+            }
+            else
+            {
+                @Html.CheckBoxFor(m => Model.OptionAnswers[oi], new { @id = Model.EvalQuestionId.ToString() + oi.ToString() })
+            }
+        }
+    }
+    @if (Model.QuestionType == YQ.Web.DB.EvalQuestionType.Comment)
+    {
+        @Html.TextAreaFor(m => Model.Answer)
+    }
+</fieldset>

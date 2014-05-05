@@ -1,0 +1,144 @@
+﻿@model YQ.Web.Models.EvalFormJSModel
+
+@{
+    ViewBag.Title = "Add Questionnaire";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        var formVM = function () {
+            var thisForm = ko.mapping.fromJSON('@Html.Raw(Json.Encode(Model))');
+            var questionVM = function () {
+                var thisQuestion = ko.mapping.fromJSON('@Html.Raw(Json.Encode(ViewBag.EvalQuestionJSModel))');
+                if (thisQuestion.SubQuestions() == null) {
+                    thisForm.SubQuestions = ko.observableArray();
+                }
+                thisQuestion.AddSubQuestion = function () {
+                    thisQuestion.SubQuestions.push(new questionVM());
+                };
+                thisQuestion.RemoveSubQuestion = function (item) {
+                    thisQuestion.SubQuestions.remove(item);
+                };
+                return thisQuestion;
+            };
+            thisForm.QuestionTypes = $.parseJSON('@Html.Raw(Json.Encode(ViewBag.EvalQuestionTypes))');
+            thisForm.SubQuestionTypes = $.parseJSON('@Html.Raw(Json.Encode(ViewBag.EvalQuestionTypes))').splice(0, 3);
+            thisForm.AddQuestion = function () {
+                thisForm.Questions.push(new questionVM());
+            };
+            thisForm.RemoveQuestion = function (item) {
+                thisForm.Questions.remove(item);
+            };
+            if (thisForm.Questions() == null) {
+                thisForm.Questions = ko.observableArray();
+            }
+            else if (thisForm.Questions().length > 0) {
+                ko.utils.arrayForEach(thisForm.Questions(), function (item) {
+                    item.AddSubQuestion = function () {
+                        item.SubQuestions.push(new questionVM());
+                    };
+                });
+            }
+            else {
+                thisForm.Questions.push(new questionVM());
+            }
+            return thisForm;
+        };
+        var vm = new formVM();
+        ko.applyBindings(vm);
+    </script>
+}
+
+@section Styles {
+    <style type="text/css">
+        .inner-well { background-color:aliceblue; }
+    </style>
+}
+
+@*<h2>Add Form</h2>*@
+@using (Html.BeginForm("AddForm", "Eval", FormMethod.Post, new { @class = "form-horizontal well well-lg" }))
+{
+    @Html.ValidationSummary(false)
+    <fieldset>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Name:</label>
+            <div class="col-sm-6">
+                <input class="form-control" data-bind="value: Name" type="text" name="Name" />
+            </div>
+        </div>
+        <div data-bind="foreach: Questions">
+            <fieldset>
+                <legend class="glyphicon glyphicon-remove-sign" data-bind="click: $parent.RemoveQuestion"></legend>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Heading:</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" type="text" data-bind="value: Heading, attr:{'name': 'Questions['+$index()+'].Heading'}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Description:</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" type="text" data-bind="value: Description, attr:{'name': 'Questions['+$index()+'].Description'}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Type:</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" data-bind="value: QuestionType, options: $root.QuestionTypes, optionsText: 'Value', optionsValue: 'Key', attr:{'name': 'Questions['+$index()+'].QuestionType'}"></select>
+                    </div>
+                </div>
+                <div class="form-group" data-bind="visible: QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.Comment)">
+                </div>
+                <div class="form-group" data-bind="visible: QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.MSMC) || QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.SSMC)">
+                    <label class="col-sm-2 control-label">Options:</label>
+                    <div class="col-sm-6">
+                        <textarea class="form-control" data-bind="value: Options, attr:{'name': 'Questions['+$index()+'].Options'}"></textarea>
+                        <span>Use enter key to separate options.</span>
+                    </div>
+                </div>
+                <div class="form-group well well-lg inner-well" data-bind="visible: QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.Parent)">
+                    <div class="col-sm-10 col-sm-offset-1" data-bind="foreach: SubQuestions">
+                        <fieldset>
+                            <legend class="glyphicon glyphicon-remove-sign" data-bind="click: $parent.RemoveSubQuestion"></legend>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Heading:</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" type="text" data-bind="value: Heading, attr:{'name': 'Questions['+$parentContext.$index()+'].SubQuestions['+$index()+'].Heading'}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Description:</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" type="text" data-bind="value: Description, attr:{'name': 'Questions['+$parentContext.$index()+'].SubQuestions['+$index()+'].Description'}" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Type:</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" data-bind="value: QuestionType, options: $root.SubQuestionTypes, optionsText: 'Value', optionsValue: 'Key', attr:{'name': 'Questions['+$parentContext.$index()+'].SubQuestions['+$index()+'].QuestionType'}"></select>
+                                </div>
+                            </div>
+                            <div class="form-group" data-bind="visible: QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.Comment)">
+                            </div>
+                            <div class="form-group" data-bind="visible: QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.MSMC) || QuestionType() == @((int)YQ.Web.DB.EvalQuestionType.SSMC)">
+                                <label class="col-sm-2 control-label">Options:</label>
+                                <div class="col-sm-6">
+                                    <textarea class="form-control" data-bind="value: Options, attr:{'name': 'Questions['+$parentContext.$index()+'].SubQuestions['+$index()+'].Options'}"></textarea>
+                                    <span>Use enter key to separate options.</span>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-sm-4 col-sm-offset-8">
+                        <input class="form-control btn btn-default" type="button" data-bind="click: AddSubQuestion" value="Add Sub Question" />
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-sm-3 col-sm-offset-9">
+            <input class="form-control btn btn-default" type="button" data-bind="click: AddQuestion" value="Add Question" />
+        </div>
+    </fieldset>
+    <input type="submit" class="btn btn-primary btn-lg" value="Save" />
+}

@@ -1,0 +1,15 @@
+﻿@model IEnumerable<YQ.Web.Models.EvalInstanceVM>
+
+@{
+    ViewBag.Title = "Filled Questionnaires";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Filled Forms</h2>
+<ul>
+    @foreach (var instance in Model)
+    {
+        <li>@Html.ActionLink(instance.DateCreated.ToShortDateString(), "InstanceDetails", new { id = instance.EvalInstanceId })</li>
+    }
+</ul>
+

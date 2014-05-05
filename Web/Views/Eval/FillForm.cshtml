@@ -1,0 +1,116 @@
+﻿@model YQ.Web.Models.EvalFormVM
+
+@{
+    ViewBag.Title = "Fill Questionnaire";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style type="text/css">
+        .inner-well {
+            background-color: aliceblue;
+        }
+    </style>
+}
+
+@using (Html.BeginForm("FillForm", "Eval", FormMethod.Post, new { @class = "form-horizontal well well-lg" }))
+{
+    <fieldset>
+        @Html.ValidationSummary(true)
+        @Html.HiddenFor(m => m.EvalFormId)
+        @Html.HiddenFor(m => m.Name)
+        <legend>@Model.Name</legend>
+        @for (int i = 0; i < Model.EvalQuestions.Count; i++)
+        {
+            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestionId)
+            @Html.HiddenFor(m => m.EvalQuestions[i].EvalFormId)
+            @Html.HiddenFor(m => m.EvalQuestions[i].Heading)
+            @Html.HiddenFor(m => m.EvalQuestions[i].Description)
+            @Html.HiddenFor(m => m.EvalQuestions[i].QuestionType)
+            <fieldset>
+                <legend>
+                    <strong>
+                        @(Model.EvalQuestions[i].Heading + ((Model.EvalQuestions[i].EvalQuestions.Count == 0 && Model.EvalQuestions[i].QuestionType != YQ.Web.DB.EvalQuestionType.SSMC && Model.EvalQuestions[i].QuestionType != YQ.Web.DB.EvalQuestionType.MSMC) ? Model.EvalQuestions[i].Description : ""))
+                    </strong>
+                </legend>
+                @if (Model.EvalQuestions[i].EvalQuestions.Count > 0)
+                {
+                    <div class="form-group well well-lg inner-well">
+                        @for (int j = 0; j < Model.EvalQuestions[i].EvalQuestions.Count; j++)
+                        {
+                            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].EvalQuestionId)
+                            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].EvalFormId)
+                            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].Heading)
+                            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].Description)
+                            @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].QuestionType)
+                            <fieldset>
+                                <legend><strong>@Convert.ToString((char)((byte)'a' + j))</strong>@(": " + Model.EvalQuestions[i].EvalQuestions[j].Heading)</legend>
+                                @if (Model.EvalQuestions[i].EvalQuestions[j].Options.Count > 0)
+                                {
+                                    for (int oi = 0; oi < Model.EvalQuestions[i].EvalQuestions[j].Options.Count; oi++)
+                                    {
+                                        @Html.HiddenFor(m => m.EvalQuestions[i].EvalQuestions[j].Options[oi])
+                                        if (Model.EvalQuestions[i].EvalQuestions[j].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC)
+                                        {
+                                            <div class="radio">
+                                                <label>
+                                                    @Html.RadioButtonFor(m => m.EvalQuestions[i].EvalQuestions[j].Answer, Model.EvalQuestions[i].EvalQuestions[j].Options[oi], new { @id = Model.EvalQuestions[i].EvalQuestions[j].EvalQuestionId.ToString() + oi.ToString() })
+                                                    @Model.EvalQuestions[i].EvalQuestions[j].Options[oi]
+                                                </label>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="checkbox">
+                                                <label>
+                                                    @Html.CheckBoxFor(m => m.EvalQuestions[i].EvalQuestions[j].OptionAnswers[oi], new { @id = Model.EvalQuestions[i].EvalQuestions[j].EvalQuestionId.ToString() + oi.ToString() })
+                                                    @Model.EvalQuestions[i].EvalQuestions[j].Options[oi]
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    @Html.TextAreaFor(m => m.EvalQuestions[i].EvalQuestions[j].Answer, new { @class = "form-control" })
+                                }
+                            </fieldset>
+                        }
+                    </div>
+                }
+                @if (Model.EvalQuestions[i].EvalQuestions.Count == 0 && (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.MSMC || Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC))
+                {
+                    <div class="form-group">
+                        @for (int oi = 0; oi < Model.EvalQuestions[i].Options.Count; oi++)
+                        {
+                            @Html.HiddenFor(m => m.EvalQuestions[i].Options[oi])
+                            if (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.SSMC)
+                            {
+                                <div class="radio">
+                                    <label>
+                                        @Html.RadioButtonFor(m => m.EvalQuestions[i].Answer, Model.EvalQuestions[i].Options[oi], new { @id = Model.EvalQuestions[i].EvalQuestionId.ToString() + oi.ToString() })
+                                        @Model.EvalQuestions[i].Options[oi]
+                                    </label>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="radio">
+                                    <label>
+                                        @Html.CheckBoxFor(m => m.EvalQuestions[i].OptionAnswers[oi], new { @id = Model.EvalQuestions[i].EvalQuestionId.ToString() + oi.ToString() })
+                                        @Model.EvalQuestions[i].Options[oi]
+                                    </label>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                @if (Model.EvalQuestions[i].QuestionType == YQ.Web.DB.EvalQuestionType.Comment)
+                {
+                    @Html.TextAreaFor(m => m.EvalQuestions[i].Answer, new { @class = "form-control" })
+                }
+            </fieldset>
+        }
+    <input type="submit" class="btn btn-primary" value="Submit" />
+    </fieldset>
+}
